@@ -1,12 +1,13 @@
 import 'dotenv/config';
 import express from 'express';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
-import { DiscordRequest, VerifyDiscordRequest } from './utils.js';
+import { verifyKeyMiddleware } from 'discord-interactions';
+import { VerifyDiscordRequest } from './utils.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({verify: VerifyDiscordRequest(process.env.PUBLIC_KEY)}))
+app.use(express.json());
 
 const client = new Client({
     intents: [
@@ -20,7 +21,7 @@ client.once(Events.ClientReady, readyClient => {
 });
 client.login(process.env.DISCORD_TOKEN)
 
-app.post('/interactions', async (req, res) => {
+app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (req, res) => {
     const {type, id, data} = req.body;
 
     if (type === InteractionType.PING) {
